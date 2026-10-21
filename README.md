@@ -2,10 +2,13 @@
 
 **A calm, fast front door to the web — one HTML file, real Google results.**
 
+**Live demo → [lumen-search-one.vercel.app](https://lumen-search-one.vercel.app/)**
+
 Lumen is a premium, single-file search front-end built with HTML, Tailwind CSS and vanilla JavaScript. It talks directly to [SearchApi.io](https://www.searchapi.io/) and renders live Google results for **web pages, images, videos and news** — complete with loading states, error handling, keyboard navigation and deep-linkable searches.
 
 No frameworks. No build step. No backend required.
 
+[![Live demo](https://img.shields.io/badge/live%20demo-lumen--search--one.vercel.app-1a73e8?logo=vercel&logoColor=white)](https://lumen-search-one.vercel.app/)
 [![HTML](https://img.shields.io/badge/HTML5-single%20file-E34F26?logo=html5&logoColor=white)](index.html)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CDN-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Vanilla JS](https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?logo=javascript&logoColor=black)](index.html)
@@ -26,11 +29,18 @@ Lumen was built under that constraint. Everything that makes a search page feel 
 
 ---
 
+## Live demo
+
+**Try it now: [https://lumen-search-one.vercel.app](https://lumen-search-one.vercel.app/)**
+
+Searches are deep-linkable, so you can share a query directly — for example:
+[`https://lumen-search-one.vercel.app/?q=How+llms+work+pdf`](https://lumen-search-one.vercel.app/?q=How+llms+work+pdf)
+
 ## Preview
 
 | Home | Results |
 | --- | --- |
-| ![Home](assets/home.png) | ![Results](assets/results.png) |
+| [![Home](assets/home.png)](https://lumen-search-one.vercel.app/) | [![Results](assets/results.png)](https://lumen-search-one.vercel.app/?q=How+llms+work+pdf) |
 
 ---
 
@@ -62,6 +72,8 @@ Lumen was built under that constraint. Everything that makes a search page feel 
 ---
 
 ## Quick start
+
+Use the hosted version at **[https://lumen-search-one.vercel.app](https://lumen-search-one.vercel.app/)**, or run it locally:
 
 ```bash
 git clone https://github.com/muhammadsami987123/lumen-search.git
