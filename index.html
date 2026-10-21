@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lumen — Search the web</title>
+<meta name="description" content="Lumen is a fast, clean front door to the web. Real Google results for pages, images, videos and news, powered by SearchApi.io." />
+<meta name="theme-color" content="#ffffff" />
+<meta property="og:title" content="Lumen — Search the web" />
+<meta property="og:description" content="A clean front door to the web. Real Google results via SearchApi.io." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%231a73e8' stroke-width='2.4'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%2334a853'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: '#202124',
+          muted: '#5f6368',
+          line: '#e8eaed',
+          link: '#1a0dab',
+          brand: '#1a73e8',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  :root { color-scheme: light; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #fff;
+    color: #202124;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: #d2e3fc; color: #202124; }
+
+  [hidden] { display: none !important; }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: #fff; }
+  ::-webkit-scrollbar-thumb { background: #dadce0; border: 3px solid #fff; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #bdc1c6; }
+
+  /* ---------------- Search field ---------------- */
+  .search-shell {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .35rem .35rem .35rem 1.05rem;
+    border: 1px solid #dfe1e5;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(32, 33, 36, .09);
+    transition: box-shadow .2s ease, border-color .2s ease;
+  }
+  .search-shell:hover {
+    border-color: #dfe1e5;
+    box-shadow: 0 1px 10px rgba(32, 33, 36, .16);
+  }
+  .search-shell:focus-within {
+    border-color: #dfe1e5;
+    box-shadow: 0 1px 10px rgba(32, 33, 36, .16), 0 0 0 4px rgba(26, 115, 232, .09);
+  }
+  .search-shell input {
+    border: 0;
+    outline: none;
+    background: transparent;
+    min-width: 0;
+    flex: 1;
+    padding: .55rem 0;
+    font-size: 15px;
+    color: #202124;
+  }
+  .search-shell input::placeholder { color: #80868b; }
+  .search-shell input::-webkit-search-cancel-button { display: none; }
+  .search-shell input:focus-visible { outline: none; }
+
+  .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border-radius: 9999px;
+    background: #1a73e8;
+    color: #fff;
+    padding: .58rem 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(26, 115, 232, .4);
+    transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+  }
+  .search-btn:hover { background: #1765cc; box-shadow: 0 2px 6px rgba(26, 115, 232, .45); }
+  .search-btn:active { transform: scale(.985); }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.45rem;
+    padding: 0 .38rem;
+    border: 1px solid #e3e5e8;
+    border-bottom-width: 2px;
+    border-radius: .4rem;
+    background: #fff;
+    color: #9aa0a6;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e8eaed;
+    border-radius: 9999px;
+    background: #fff;
+    padding: .34rem .8rem;
+    font-size: 12px;
+    color: #5f6368;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .chip:hover { background: #f8f9fa; border-color: #dadce0; color: #202124; }
+
+  .btn-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    border: 1px solid #f8f9fa;
+    border-radius: .5rem;
+    background: #f8f9fa;
+    padding: .55rem 1rem;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #3c4043;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+    transition: border-color .15s ease, box-shadow .15s ease, color .15s ease, background .15s ease;
+  }
+  .btn-soft:hover {
+    background: #f8f9fa;
+    border-color: #dadce0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    color: #202124;
+  }
+
+  /* ---------------- Sticky search bar ---------------- */
+  #search-section { position: sticky; top: 0; z-index: 40; padding: 0 0 .9rem; transition: padding .2s ease, box-shadow .2s ease; }
+
+  #inline-brand, #inline-actions { display: none; }
+
+  body.is-results #home-header,
+  body.is-results #home-hero,
+  body.is-results #hero-extras { display: none; }
+
+  body.is-results #search-section {
+    padding: .55rem 0;
+    background: rgba(255, 255, 255, .97);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #ebedef;
+  }
+  body.is-results #inline-brand,
+  body.is-results #inline-actions { display: flex; }
+  body.is-results .search-shell { padding-top: .2rem; padding-bottom: .2rem; }
+  body.is-results .search-shell input { padding: .5rem 0; }
+
+  /* ---------------- Tabs ---------------- */
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .7rem .85rem;
+    border-bottom: 3px solid transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5f6368;
+    white-space: nowrap;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .tab-btn:hover { color: #202124; }
+  .tab-btn[aria-selected="true"] { color: #1a73e8; border-bottom-color: #1a73e8; }
+  .tab-btn[aria-selected="true"] svg { opacity: 1; }
+  .tab-btn svg { opacity: .75; }
+
+  /* ---------------- Results ---------------- */
+  .result { animation: rise .3s ease both; }
+  .result:nth-child(2) { animation-delay: .02s; }
+  .result:nth-child(3) { animation-delay: .04s; }
+  .result:nth-child(4) { animation-delay: .06s; }
+  .result:nth-child(n+5) { animation-delay: .08s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .result-title a { color: #1a0dab; }
+  .result-title a:visited { color: #681da8; }
+  .result-title a:hover { text-decoration: underline; }
+
+  mark {
+    background: transparent;
+    color: inherit;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  .sitelink {
+    color: #1a0dab;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: .15rem 0;
+  }
+  .sitelink:hover { text-decoration: underline; }
+
+  /* ---------------- Panels ---------------- */
+  .panel {
+    border: 1px solid #dadce0;
+    border-radius: .75rem;
+    background: #fff;
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: .8rem 1rem;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #202124;
+    border-bottom: 1px solid #ebedef;
+  }
+
+  details.q summary { list-style: none; }
+  details.q summary::-webkit-details-marker { display: none; }
+  details.q[open] .chev { transform: rotate(180deg); }
+
+  /* ---------------- Skeleton ---------------- */
+  .skeleton {
+    background: linear-gradient(90deg, #f1f3f4 25%, #e8eaed 37%, #f1f3f4 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: .4rem;
+  }
+  @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+  /* ---------------- Progress ---------------- */
+  #progress {
+    position: fixed;
+    inset: 0 auto auto 0;
+    z-index: 60;
+    height: 3px;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, #4285f4, #34a853 55%, #fbbc05 80%, #ea4335);
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  #progress.active { opacity: 1; animation: progress 1.5s ease-in-out infinite; }
+  @keyframes progress {
+    0% { transform: scaleX(0); }
+    60% { transform: scaleX(.75); }
+    100% { transform: scaleX(.98); }
+  }
+
+  /* ---------------- Toast ---------------- */
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.6rem;
+    z-index: 70;
+    transform: translate(-50%, 1rem);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  :focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+
+  @media (max-width: 1023px) {
+    #inline-brand, #inline-actions { display: none !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+
+<body class="flex min-h-[100dvh] flex-col">
+  <div id="progress" aria-hidden="true"></div>
+
+  <!-- ============================ HOME HEADER ============================ -->
+  <header id="home-header" class="w-full">
+    <div class="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-5 py-4">
+      <p class="hidden text-[12.5px] text-[#9aa0a6] sm:block">A calmer front door to the web</p>
+      <nav class="ml-auto flex items-center gap-5 text-[13px] text-[#5f6368]">
+        <a href="https://www.searchapi.io/" target="_blank" rel="noopener" class="transition hover:text-[#202124] hover:underline">SearchApi.io</a>
+        <button id="settings-btn" data-open-settings type="button" class="transition hover:text-[#202124] hover:underline">Settings</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============================== HOME HERO ============================ -->
+  <section id="home-hero" class="flex flex-col items-center px-5 pb-8 pt-[11vh] text-center sm:pt-[13vh]">
+    <a href="./" class="flex items-center gap-3.5" aria-label="Lumen home">
+      <span class="grid h-[52px] w-[52px] place-items-center rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_10px_rgba(32,33,36,.08)] sm:h-[58px] sm:w-[58px]">
+        <svg viewBox="0 0 32 32" class="h-7 w-7 sm:h-8 sm:w-8" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="10.5" stroke="#1a73e8" stroke-width="2.1" />
+          <circle cx="16" cy="16" r="4.2" fill="#34a853" />
+          <path d="M16 5.5v3M16 23.5v3M5.5 16h3M23.5 16h3" stroke="#fbbc05" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="text-[2.6rem] font-semibold leading-none tracking-[-0.05em] text-[#202124] sm:text-[3.1rem]">Lumen</span>
+    </a>
+    <p class="mt-5 max-w-md text-[13.5px] leading-relaxed text-[#70757a]">
+      One search for the whole web — pages, images, videos and news.
+      Real Google results, nothing else in the way.
+    </p>
+  </section>
+
+  <!-- ============================== SEARCH ============================== -->
+  <section id="search-section">
+    <div class="mx-auto flex w-full max-w-[1240px] items-center gap-4 px-4 sm:px-6">
+      <a id="inline-brand" href="./" class="w-[132px] shrink-0 items-center gap-2" aria-label="Lumen home">
+        <svg viewBox="0 0 32 32" class="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="10.5" stroke="#1a73e8" stroke-width="2.4" />
+          <circle cx="16" cy="16" r="4" fill="#34a853" />
+        </svg>
+        <span class="text-[19px] font-semibold tracking-[-0.04em] text-[#202124]">Lumen</span>
+      </a>
+
+      <div class="mx-auto w-full max-w-[692px]">
+        <form id="search-form" role="search" autocomplete="off" novalidate>
+          <div class="search-shell">
+            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px] shrink-0 text-[#9aa0a6]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" /><path d="m20 20-3.7-3.7" />
+            </svg>
+
+            <label for="search-input" class="sr-only">Search the web</label>
+            <input id="search-input" name="q" type="search" enterkeyhint="search" spellcheck="false"
+              placeholder="Search the web" />
+
+            <button id="clear-btn" type="button" hidden
+              class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[#70757a] transition hover:bg-[#f1f3f4] hover:text-[#202124]"
+              aria-label="Clear search">
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+
+            <span class="kbd mr-0.5 hidden sm:inline-flex" aria-hidden="true">/</span>
+
+            <button type="submit" class="search-btn shrink-0" aria-label="Search">
+              <span class="hidden sm:inline">Search</span>
+              <svg viewBox="0 0 24 24" class="h-[15px] w-[15px] sm:hidden" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.7-3.7" /></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="inline-actions" class="w-[132px] shrink-0 justify-end">
+        <button data-open-settings type="button"
+          class="grid h-9 w-9 place-items-center rounded-full text-[#5f6368] transition hover:bg-[#f1f3f4] hover:text-[#202124]"
+          aria-label="Search settings" title="Search settings">
+          <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ HOME EXTRAS =========================== -->
+  <div id="hero-extras" class="mx-auto w-full max-w-[692px] px-5 pb-10">
+    <div class="flex flex-wrap items-center justify-center gap-2.5">
+      <button id="curious-btn" type="button" class="btn-soft">I'm feeling curious</button>
+      <button id="settings-hint" type="button" data-open-settings class="btn-soft">Search settings</button>
+    </div>
+
+    <div class="mt-7 flex flex-wrap items-center justify-center gap-2">
+      <span class="mr-0.5 text-[12px] text-[#9aa0a6]">Try</span>
+      <button type="button" data-suggest="design systems" class="chip">design systems</button>
+      <button type="button" data-suggest="aurora borealis" class="chip">aurora borealis</button>
+      <button type="button" data-suggest="best coffee brewers" class="chip">best coffee brewers</button>
+      <button type="button" data-suggest="how llms work" class="chip hidden sm:inline-flex">how llms work</button>
+    </div>
+
+    <div id="recent-wrap" class="mt-4 hidden items-center justify-center gap-2 text-[12px]">
+      <span class="text-[#9aa0a6]">Recent</span>
+      <div id="recent-list" class="flex flex-wrap items-center justify-center gap-1.5"></div>
+      <button id="clear-recent" type="button" class="ml-0.5 text-[#9aa0a6] underline decoration-[#dadce0] underline-offset-2 transition hover:text-[#5f6368]">clear</button>
+    </div>
+
+    <p class="mt-7 hidden items-center justify-center gap-2 text-[11.5px] text-[#9aa0a6] sm:flex">
+      <span class="kbd">/</span> to focus
+      <span class="text-[#dadce0]">·</span>
+      <span class="kbd">↵</span> to search
+      <span class="text-[#dadce0]">·</span>
+      <span class="kbd">esc</span> to step away
+    </p>
+  </div>
+
+  <!-- ============================== TABS ================================ -->
+  <nav id="tabs-wrap" class="hidden w-full border-b border-[#ebedef] bg-white" aria-label="Result types">
+    <div id="tabs" class="no-scrollbar mx-auto flex max-w-[1240px] items-center gap-1 overflow-x-auto px-2 sm:px-6" role="tablist"></div>
+  </nav>
+
+  <!-- ============================= RESULTS ============================== -->
+  <main class="relative mx-auto w-full max-w-[1240px] flex-1 px-4 pb-20 pt-4 sm:px-6">
+    <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12">
+      <div id="results" class="min-w-0 w-full max-w-[700px] flex-1" aria-live="polite" aria-busy="false"></div>
+      <aside id="sidebar" class="w-full shrink-0 space-y-3 lg:sticky lg:top-[7.25rem] lg:w-[340px]" aria-label="Search context"></aside>
+    </div>
+  </main>
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="mt-auto border-t border-[#ebedef] bg-[#f8f9fa]">
+    <div class="mx-auto flex max-w-[1240px] flex-col gap-2 px-5 py-4 text-[12.5px] text-[#70757a] sm:flex-row sm:items-center sm:justify-between">
+      <p>Lumen · results served by
+        <a class="text-[#5f6368] underline decoration-[#dadce0] underline-offset-2 hover:text-[#202124]" href="https://www.searchapi.io/" target="_blank" rel="noopener">SearchApi.io</a>
+      </p>
+      <p class="text-[#9aa0a6]">HTML · Tailwind CSS · Vanilla JS</p>
+    </div>
+  </footer>
+
+  <!-- ============================== MODAL ============================== -->
+  <div id="modal" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="modal-backdrop" class="absolute inset-0 bg-[#202124]/40 backdrop-blur-[2px]"></div>
+
+    <div class="relative mx-auto mt-[10vh] w-[calc(100%-2rem)] max-w-[440px] overflow-hidden rounded-xl border border-[#dadce0] bg-white shadow-2xl shadow-black/20">
+      <div class="flex items-start justify-between gap-4 border-b border-[#ebedef] px-5 py-4">
+        <div>
+          <h2 id="modal-title" class="text-[15px] font-semibold text-[#202124]">Search settings</h2>
+          <p class="mt-0.5 text-[12px] text-[#70757a]">Stored locally in this browser only.</p>
+        </div>
+        <button id="modal-close" type="button" class="grid h-8 w-8 place-items-center rounded-full text-[#5f6368] transition hover:bg-[#f1f3f4] hover:text-[#202124]" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <form id="settings-form" class="space-y-4 px-5 py-5">
+        <div>
+          <label for="key-input" class="mb-1.5 block text-[12px] font-medium text-[#3c4043]">SearchApi.io API key</label>
+          <div class="relative">
+            <input id="key-input" type="password" spellcheck="false" autocomplete="off"
+              class="w-full rounded-lg border border-[#dadce0] bg-white px-3 py-2.5 pr-16 font-mono text-[12px] text-[#202124] outline-none transition placeholder:text-[#9aa0a6] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/15"
+              placeholder="Paste your API key" />
+            <button id="toggle-key" type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-[#5f6368] transition hover:bg-[#f1f3f4] hover:text-[#202124]">show</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="lang-select" class="mb-1.5 block text-[12px] font-medium text-[#3c4043]">Language</label>
+            <select id="lang-select" class="w-full appearance-none rounded-lg border border-[#dadce0] bg-white px-2.5 py-2.5 text-[12.5px] text-[#202124] outline-none transition focus:border-[#1a73e8]">
+              <option value="en">English</option>
+              <option value="ur">Urdu</option>
+              <option value="hi">Hindi</option>
+              <option value="ar">Arabic</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="pt">Portuguese</option>
+              <option value="tr">Turkish</option>
+              <option value="id">Indonesian</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </div>
+          <div>
+            <label for="region-select" class="mb-1.5 block text-[12px] font-medium text-[#3c4043]">Region</label>
+            <select id="region-select" class="w-full appearance-none rounded-lg border border-[#dadce0] bg-white px-2.5 py-2.5 text-[12.5px] text-[#202124] outline-none transition focus:border-[#1a73e8]">
+              <option value="us">United States</option>
+              <option value="pk">Pakistan</option>
+              <option value="in">India</option>
+              <option value="gb">United Kingdom</option>
+              <option value="ae">UAE</option>
+              <option value="ca">Canada</option>
+              <option value="au">Australia</option>
+              <option value="de">Germany</option>
+              <option value="fr">France</option>
+              <option value="jp">Japan</option>
+              <option value="br">Brazil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-[#fde293] bg-[#fef7e0] px-3.5 py-3">
+          <p class="flex items-start gap-2 text-[11.5px] leading-relaxed text-[#7a5b00]">
+            <svg viewBox="0 0 24 24" class="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
+            <span>Any key used in a browser is visible to visitors. For a public deployment, keep the key on a server and call SearchApi.io through a small proxy.</span>
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 pt-0.5">
+          <button id="reset-key" type="button" class="text-[12px] text-[#5f6368] underline decoration-[#dadce0] underline-offset-2 transition hover:text-[#202124]">Use default key</button>
+          <div class="flex items-center gap-2">
+            <button id="modal-cancel" type="button" class="rounded-lg px-3.5 py-2 text-[13px] font-medium text-[#1a73e8] transition hover:bg-[#f0f4ff]">Cancel</button>
+            <button type="submit" class="rounded-lg bg-[#1a73e8] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#1765cc]">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="rounded-lg bg-[#202124] px-4 py-2.5 text-[12.5px] text-white shadow-xl shadow-black/25"></div>
+
+<script>
+/* ==================================================================
+   LUMEN — single-file search client for SearchApi.io
+   ------------------------------------------------------------------
+   CONFIG: the ONLY place the key is defined.
+   ------------------------------------------------------------------
+   SECURITY NOTE (read before deploying publicly)
+   SearchApi.io returns `Access-Control-Allow-Origin: *`, so the API
+   can be called directly from a browser — which is exactly what this
+   demo does. That also means anyone who opens DevTools can read the
+   key and spend your credits.
+
+   Simplest secure path for production (no framework, no backend app):
+     Cloudflare Worker / Vercel Edge Function (about 18 lines):
+
+       export default {
+         async fetch(req) {
+           const url = new URL(req.url);
+           const api = new URL('https://www.searchapi.io/api/v1/search');
+           api.searchParams.set('engine', url.searchParams.get('engine') || 'google');
+           api.searchParams.set('q', url.searchParams.get('q') || '');
+           api.searchParams.set('hl', url.searchParams.get('hl') || 'en');
+           api.searchParams.set('gl', url.searchParams.get('gl') || 'us');
+           api.searchParams.set('num', url.searchParams.get('num') || '10');
+           api.searchParams.set('api_key', env.SEARCHAPI_KEY);
+           const r = await fetch(api, { headers: { Accept: 'application/json' } });
+           return new Response(await r.text(), {
+             headers: {
+               'content-type': 'application/json',
+               'access-control-allow-origin': 'https://your-domain.com'
+             }
+           });
+         }
+       };
+
+   Then set CONFIG.PROXY to that URL and drop the key from the client.
+   The rest of this file needs zero changes: buildUrl() already
+   prefers CONFIG.PROXY when it is set.
+   ================================================================== */
+
+const CONFIG = {
+  // API KEY — replace this value with your own SearchApi.io key.
+  API_KEY: 'gTC3KDLEQdE9PvvaNWyGnTjd',
+
+  // Leave empty for direct browser -> SearchApi.io calls.
+  // Set to e.g. 'https://your-worker.workers.dev/search' for production.
+  PROXY: '',
+
+  ENDPOINT: 'https://www.searchapi.io/api/v1/search',
+  MAX_RECENT: 6,
+  MAX_IMAGES: 40,
+};
+
+const TABS = {
+  all:    { label: 'All',    engine: 'google',        icon: 'globe' },
+  images: { label: 'Images', engine: 'google_images', icon: 'image' },
+  videos: { label: 'Videos', engine: 'google_videos', icon: 'play' },
+  news:   { label: 'News',   engine: 'google_news',   icon: 'news' },
+};
+
+const CURIOUS = [
+  'best coffee brewers', 'aurora borealis', 'design systems',
+  'how llms work', 'karakoram highway', 'minimal desk setup',
+  'history of karachi', 'northern lights photography',
+];
+
+const LS = {
+  key: 'lumen.apiKey',
+  prefs: 'lumen.prefs',
+  recent: 'lumen.recent',
+};
+
+/* ------------------------------- helpers ------------------------------- */
+const $  = (sel, root = document) => root.querySelector(sel);
+const arr = (v) => (Array.isArray(v) ? v : []);
+
+const esc = (value = '') => String(value).replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+
+function safeUrl(raw) {
+  try {
+    const u = new URL(String(raw), location.href);
+    return /^https?:$/.test(u.protocol) ? u.href : '#';
+  } catch { return '#'; }
+}
+
+function safeImg(raw) {
+  const s = String(raw || '');
+  if (/^https?:\/\//i.test(s) || /^data:image\//i.test(s)) return s;
+  return '';
+}
+
+function hostOf(raw) {
+  try { return new URL(raw).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
+
+function pathOf(raw) {
+  try {
+    const p = new URL(raw).pathname.replace(/\/+$/, '');
+    return p === '' || p === '/' ? '' : p;
+  } catch { return ''; }
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function highlight(text, query) {
+  const safe = esc(text ?? '');
+  if (!query) return safe;
+  const terms = [...new Set(
+    String(query).toLowerCase().split(/\s+/).filter((t) => t.length > 2)
+  )];
+  if (!terms.length) return safe;
+  const re = new RegExp('(' + terms.map(escapeRe).join('|') + ')', 'gi');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+const fmtNum = (n) => {
+  const num = Number(n);
+  return Number.isFinite(num) ? new Intl.NumberFormat('en-US').format(num) : '';
+};
+
+function faviconFor(item, host) {
+  const raw = String(item?.favicon || '');
+  if (/^data:image\//i.test(raw)) return raw;
+  if (!host) return '';
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+}
+
+/* ------------------------------- settings ------------------------------ */
+function readJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
+}
+
+const settings = Object.assign(
+  { apiKey: '', hl: 'en', gl: 'us' },
+  readJSON(LS.prefs, {})
+);
+const savedKey = (() => { try { return localStorage.getItem(LS.key) || ''; } catch { return ''; } })();
+
+const getKey = () => (settings.apiKey || savedKey || CONFIG.API_KEY).trim();
+
+/* -------------------------------- state -------------------------------- */
+const state = {
+  query: '',
+  tab: 'all',
+  loading: false,
+  controller: null,
+  cache: new Map(),
+};
+let toastTimer = null;
+
+/* ------------------------------- elements ------------------------------ */
+const form        = $('#search-form');
+const input       = $('#search-input');
+const clearBtn    = $('#clear-btn');
+const tabsEl      = $('#tabs');
+const tabsWrap    = $('#tabs-wrap');
+const resultsEl   = $('#results');
+const sidebarEl   = $('#sidebar');
+const progressEl  = $('#progress');
+const recentWrap  = $('#recent-wrap');
+const recentList  = $('#recent-list');
+const toastEl     = $('#toast');
+const modal       = $('#modal');
+const keyInput    = $('#key-input');
+const langSelect  = $('#lang-select');
+const regionSel   = $('#region-select');
+
+/* --------------------------- icons (inline svg) ------------------------ */
+const ICONS = {
+  globe: '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
+  image: '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 5-5 4 4 3-2 4 4"/></svg>',
+  play:  '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 9 5 3-5 3z"/></svg>',
+  news:  '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  search:'<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.7-3.7"/></svg>',
+};
+
+/* ================================ TABS ================================= */
+function renderTabs() {
+  tabsEl.innerHTML = Object.entries(TABS).map(([id, t]) => `
+    <button type="button" role="tab" data-tab="${id}" aria-selected="${id === state.tab}" class="tab-btn">
+      ${ICONS[t.icon]}<span>${t.label}</span>
+    </button>
+  `).join('');
+}
+
+function syncTabs() {
+  tabsEl.querySelectorAll('[data-tab]').forEach((btn) => {
+    btn.setAttribute('aria-selected', String(btn.dataset.tab === state.tab));
+  });
+}
+
+/* ================================ RECENT =============================== */
+function readRecent() {
+  const list = readJSON(LS.recent, []);
+  return Array.isArray(list) ? list.filter((x) => typeof x === 'string').slice(0, CONFIG.MAX_RECENT) : [];
+}
+
+function addRecent(query) {
+  const list = readRecent().filter((q) => q.toLowerCase() !== query.toLowerCase());
+  list.unshift(query);
+  writeJSON(LS.recent, list.slice(0, CONFIG.MAX_RECENT));
+  renderRecent();
+}
+
+function renderRecent() {
+  const list = readRecent();
+  if (!list.length) { recentWrap.classList.add('hidden'); recentWrap.classList.remove('flex'); return; }
+  recentWrap.classList.remove('hidden');
+  recentWrap.classList.add('flex');
+  recentList.innerHTML = list.map((q) => `
+    <button type="button" data-suggest="${esc(q)}"
+      class="max-w-[11rem] truncate rounded-full border border-[#e8eaed] bg-white px-2.5 py-1 text-[11.5px] text-[#5f6368] transition hover:border-[#dadce0] hover:bg-[#f8f9fa] hover:text-[#202124]">
+      ${esc(q)}
+    </button>
+  `).join('');
+}
+
+/* =============================== FETCHING ============================== */
+function buildUrl(tab, query) {
+  const params = new URLSearchParams({
+    engine: TABS[tab].engine,
+    q: query,
+    hl: settings.hl,
+    gl: settings.gl,
+  });
+
+  if (tab === 'videos' || tab === 'news') params.set('num', '20');
+  else if (tab === 'all') params.set('num', '10');
+
+  if (CONFIG.PROXY) return `${CONFIG.PROXY}?${params.toString()}`;
+
+  params.set('api_key', getKey());
+  return `${CONFIG.ENDPOINT}?${params.toString()}`;
+}
+
+async function fetchTab(tab, query, signal) {
+  let res;
+  try {
+    res = await fetch(buildUrl(tab, query), { signal, headers: { Accept: 'application/json' } });
+  } catch (err) {
+    if (err?.name === 'AbortError') throw err;
+    const e = new Error('The request could not reach SearchApi.io (network or CORS blocked).');
+    e.kind = 'network';
+    throw e;
+  }
+
+  let payload = null;
+  const text = await res.text();
+  try { payload = text ? JSON.parse(text) : null; } catch { /* non-JSON */ }
+
+  if (!res.ok || payload?.error) {
+    const e = new Error(payload?.error || payload?.message || `Request failed with HTTP ${res.status}.`);
+    e.status = res.status;
+    throw e;
+  }
+  if (!payload) {
+    const e = new Error('SearchApi.io returned an empty response.');
+    e.kind = 'empty';
+    throw e;
+  }
+  return payload;
+}
+
+/* ============================== RUN SEARCH ============================= */
+async function runSearch({ query, tab = state.tab, push = true, force = false } = {}) {
+  const q = String(query ?? state.query).trim();
+  if (!q) { input.focus(); return; }
+
+  const tabChanged = tab !== state.tab;
+  state.query = q;
+  state.tab = tab;
+  input.value = q;
+  toggleClear();
+
+  if (tabChanged) { resultsEl.innerHTML = ''; sidebarEl.innerHTML = ''; }
+
+  document.body.classList.add('is-results');
+  tabsWrap.classList.remove('hidden');
+  syncTabs();
+  document.title = `${q} — Lumen`;
+  updateUrl(push);
+
+  const cacheKey = `${tab}|${q}|${settings.hl}|${settings.gl}`;
+
+  // Cancel anything still in flight before deciding to render or fetch.
+  state.controller?.abort();
+  state.controller = null;
+  setLoading(false);
+
+  if (!force && state.cache.has(cacheKey)) {
+    render(tab, state.cache.get(cacheKey));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  const controller = new AbortController();
+  state.controller = controller;
+
+  setLoading(true);
+  showSkeleton(tab);
+
+  try {
+    const data = await fetchTab(tab, q, controller.signal);
+    if (controller.signal.aborted) return;
+    state.cache.set(cacheKey, data);
+    render(tab, data);
+    addRecent(q);
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    showError(err, q);
+  } finally {
+    if (state.controller === controller) {
+      setLoading(false);
+      state.controller = null;
+    }
+  }
+}
+
+function setLoading(on) {
+  state.loading = on;
+  progressEl.classList.toggle('active', on);
+  resultsEl.setAttribute('aria-busy', String(on));
+}
+
+function updateUrl(push) {
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set('q', state.query);
+    if (state.tab === 'all') url.searchParams.delete('tab');
+    else url.searchParams.set('tab', state.tab);
+    history[push ? 'pushState' : 'replaceState']({ q: state.query, tab: state.tab }, '', url);
+  } catch { /* file:// history edges */ }
+}
+
+/* ============================== RENDERING ============================= */
+function render(tab, data) {
+  resultsEl.innerHTML = '';
+  sidebarEl.innerHTML = '';
+  sidebarEl.style.display = 'none';
+
+  const renderer = { all: renderAll, images: renderImages, videos: renderVideos, news: renderNews }[tab];
+  renderer(data);
+}
+
+function statsBar(data, fallbackLabel) {
+  const info = data?.search_information || {};
+  const total = Number(info.total_results);
+  const ms = info.time_taken_displayed;
+
+  let left = Number.isFinite(total) && total > 0
+    ? `About ${fmtNum(total)} results`
+    : esc(fallbackLabel);
+  if (ms) left += ` <span class="text-[#9aa0a6]">(${esc(ms)} seconds)</span>`;
+
+  const google = `https://www.google.com/search?q=${encodeURIComponent(state.query)}`;
+
+  return `
+    <div class="mb-1 flex flex-wrap items-center justify-between gap-2 border-b border-[#ebedef] pb-3">
+      <p class="text-[12.5px] text-[#70757a]">${left}</p>
+      <a href="${esc(google)}" target="_blank" rel="noopener noreferrer"
+        class="inline-flex items-center gap-1 text-[12.5px] text-[#1a73e8] hover:underline">
+        Open in Google ${ICONS.arrow}
+      </a>
+    </div>`;
+}
+
+/* ------------------------------- all tab ------------------------------- */
+function renderAll(data) {
+  const organic = arr(data.organic_results);
+  const answer  = data.answer_box;
+
+  resultsEl.innerHTML = `
+    ${statsBar(data, 'Google results')}
+    ${answer && (answer.answer || answer.snippet || answer.text) ? answerCard(answer) : ''}
+    <div>
+      ${organic.length ? organic.map((r) => organicCard(r)).join('') : emptyState()}
+    </div>
+  `;
+
+  renderSidebarAll(data);
+}
+
+function organicCard(r = {}, opts = {}) {
+  const url     = safeUrl(r.link);
+  const domain  = String(r.domain || hostOf(url)).replace(/^www\./, '');
+  const site    = (typeof r.source === 'string' && r.source) ? r.source : domain;
+  const crumb   = String(r.displayed_link || '').replace(/^https?:\/\//, '')
+                || (r.domain ? `${domain}${pathOf(url)}` : '');
+  const icon    = faviconFor(r, domain);
+  const thumb   = safeImg(r.thumbnail);
+  const date    = r.date ? String(r.date) : '';
+
+  return `
+    <article class="result group -mx-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-[#f8f9fa] sm:py-4">
+      <div class="flex gap-3.5">
+        <div class="pt-0.5">
+          <span class="grid h-7 w-7 place-items-center overflow-hidden rounded-full border border-[#ebedef] bg-white">
+            ${icon
+              ? `<img src="${esc(icon)}" alt="" loading="lazy" class="h-[17px] w-[17px] object-contain" onerror="this.remove()">`
+              : `<span class="text-[11px] font-semibold uppercase text-[#9aa0a6]">${esc((site || '?').slice(0, 1))}</span>`}
+          </span>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex min-w-0 flex-col">
+            <span class="truncate text-[13px] font-medium leading-5 text-[#202124]">${esc(site || domain)}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="truncate text-[12px] leading-4 text-[#4d5156]">${esc(crumb)}</span>
+              ${date ? `<span class="shrink-0 text-[11.5px] text-[#9aa0a6]">· ${esc(date)}</span>` : ''}
+            </div>
+          </div>
+
+          <h3 class="result-title mt-1 text-[18px] leading-[1.35] font-normal sm:text-[19.5px]">
+            <a class="transition" href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow">${highlight(r.title, state.query)}</a>
+          </h3>
+
+          <p class="mt-1 line-clamp-3 text-[13.5px] leading-[1.6] text-[#4d5156]">${highlight(r.snippet, state.query)}</p>
+          ${sitelinks(r.sitelinks)}
+        </div>
+
+        ${opts.thumb && thumb ? `
+          <a href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow"
+             class="hidden h-[76px] w-[120px] shrink-0 overflow-hidden rounded-lg border border-[#ebedef] sm:block">
+            <img src="${esc(thumb)}" alt="" loading="lazy" class="h-full w-full object-cover">
+          </a>` : ''}
+      </div>
+    </article>`;
+}
+
+function sitelinks(list) {
+  const items = arr(list).filter((s) => s && s.link).slice(0, 4);
+  if (!items.length) return '';
+  return `<div class="mt-2 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+    ${items.map((s) => `
+      <a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer nofollow" class="sitelink truncate">
+        ${esc(s.title || hostOf(s.link))}
+      </a>`).join('')}
+  </div>`;
+}
+
+function answerCard(answer) {
+  const text = answer.answer || answer.snippet || answer.text || '';
+  if (!text) return '';
+  const link = answer.link || answer.source?.link || '';
+  const src  = answer.source?.name || (link ? hostOf(link) : '');
+
+  return `
+    <section class="my-3 rounded-xl border border-[#dadce0] bg-white p-4">
+      <p class="text-[11px] font-medium uppercase tracking-[0.14em] text-[#70757a]">Featured answer</p>
+      <p class="mt-2 text-[14px] leading-[1.65] text-[#3c4043]">${highlight(text, state.query)}</p>
+      ${link ? `<a href="${esc(safeUrl(link))}" target="_blank" rel="noopener noreferrer nofollow"
+        class="mt-2.5 inline-flex items-center gap-1 text-[12.5px] text-[#1a73e8] hover:underline">${esc(src || 'Read source')} ${ICONS.arrow}</a>` : ''}
+    </section>`;
+}
+
+function emptyState() {
+  const google = `https://www.google.com/search?q=${encodeURIComponent(state.query)}`;
+  return `
+    <div class="rounded-xl border border-[#ebedef] px-6 py-14 text-center">
+      <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#f1f3f4] text-[#5f6368]">
+        ${ICONS.search}
+      </div>
+      <h3 class="mt-4 text-[15px] font-medium text-[#202124]">Your search did not match any results</h3>
+      <p class="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-[#5f6368]">
+        Try different keywords, check your spelling, or search Google directly for “${esc(state.query)}”.
+      </p>
+      <a href="${esc(google)}" target="_blank" rel="noopener noreferrer"
+        class="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-[#dadce0] px-4 py-2 text-[13px] font-medium text-[#1a73e8] transition hover:bg-[#f8f9fa]">
+        Search on Google ${ICONS.arrow}
+      </a>
+    </div>`;
+}
+
+/* ----------------------------- images tab ------------------------------ */
+function renderImages(data) {
+  const items = arr(data.images).slice(0, CONFIG.MAX_IMAGES);
+
+  resultsEl.innerHTML = `
+    ${statsBar(data, `${items.length} images`)}
+    ${items.length ? `
+      <div class="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+        ${items.map((img) => imageCard(img)).join('')}
+      </div>` : emptyState()}
+  `;
+}
+
+function imageCard(img = {}) {
+  const original = safeUrl(img.original?.link || img.link);
+  const thumb = safeImg(img.thumbnail);
+  const title = img.title || '';
+  const source = img.source?.name || hostOf(img.source?.link || original);
+
+  return `
+    <a href="${esc(original)}" target="_blank" rel="noopener noreferrer nofollow"
+       class="group relative block overflow-hidden rounded-lg border border-[#ebedef] bg-[#f8f9fa]">
+      <div class="aspect-[4/3] w-full overflow-hidden">
+        ${thumb
+          ? `<img src="${esc(thumb)}" alt="${esc(title)}" loading="lazy" class="h-full w-full object-cover transition duration-300 group-hover:opacity-95">`
+          : `<div class="h-full w-full bg-[#f1f3f4]"></div>`}
+      </div>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 pt-8 opacity-0 transition duration-200 group-hover:opacity-100">
+        <p class="line-clamp-1 text-[11.5px] font-medium text-white">${esc(title)}</p>
+        ${source ? `<p class="mt-0.5 truncate text-[10.5px] text-white/70">${esc(source)}</p>` : ''}
+      </div>
+    </a>`;
+}
+
+/* ----------------------------- videos tab ------------------------------ */
+function renderVideos(data) {
+  const items = arr(data.videos);
+
+  resultsEl.innerHTML = `
+    ${statsBar(data, `${items.length} videos`)}
+    ${items.length ? `
+      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        ${items.map((v) => videoCard(v)).join('')}
+      </div>` : emptyState()}
+  `;
+}
+
+function videoCard(v = {}) {
+  const url = safeUrl(v.link);
+  const thumb = safeImg(v.thumbnail);
+  const meta = [v.channel || v.source, v.date].filter(Boolean).join(' · ');
+
+  return `
+    <article class="group">
+      <a href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow" class="relative block aspect-video overflow-hidden rounded-lg border border-[#ebedef] bg-[#f1f3f4]">
+        ${thumb ? `<img src="${esc(thumb)}" alt="${esc(v.title || '')}" loading="lazy" class="h-full w-full object-cover">` : ''}
+        <span class="absolute inset-0 grid place-items-center bg-black/10 opacity-0 transition group-hover:opacity-100">
+          <span class="grid h-11 w-11 place-items-center rounded-full bg-white/95 text-[#1a73e8] shadow-md">
+            <svg viewBox="0 0 24 24" class="ml-0.5 h-4 w-4" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </span>
+        ${v.length ? `<span class="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 font-mono text-[10.5px] text-white">${esc(v.length)}</span>` : ''}
+      </a>
+      <h3 class="mt-2.5 line-clamp-2 text-[14px] leading-snug">
+        <a href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow"
+          class="font-medium text-[#202124] transition hover:text-[#1a0dab] hover:underline">${highlight(v.title, state.query)}</a>
+      </h3>
+      <p class="mt-1 truncate text-[12px] text-[#70757a]">${esc(meta)}</p>
+      ${v.snippet ? `<p class="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#5f6368]">${esc(v.snippet)}</p>` : ''}
+    </article>`;
+}
+
+/* ------------------------------ news tab ------------------------------- */
+function renderNews(data) {
+  const items = arr(data.news_results).length ? arr(data.news_results) : arr(data.organic_results);
+
+  resultsEl.innerHTML = `
+    ${statsBar(data, `${items.length} stories`)}
+    ${items.length ? `<div>${items.map((n) => organicCard(n, { thumb: true })).join('')}</div>` : emptyState()}
+  `;
+}
+
+/* ------------------------------- sidebar ------------------------------- */
+function renderSidebarAll(data) {
+  const kg = data.knowledge_graph;
+  const questions = arr(data.related_questions);
+  const related = arr(data.related_searches);
+
+  let html = '';
+  if (kg && (kg.title || kg.description)) html += knowledgeCard(kg);
+  if (questions.length) html += questionsCard(questions);
+  if (related.length) html += searchesCard(related);
+
+  if (!html) return;
+  sidebarEl.innerHTML = html;
+  sidebarEl.style.display = '';
+}
+
+function knowledgeCard(kg = {}) {
+  const image = safeImg(kg.image || kg.thumbnail);
+  const link  = kg.source?.link || kg.website || '';
+  const byline = kg.source?.name || (link ? hostOf(link) : '');
+
+  return `
+    <section class="panel">
+      ${image ? `<div class="aspect-[16/9] w-full overflow-hidden border-b border-[#ebedef] bg-[#f8f9fa]"><img src="${esc(image)}" alt="" loading="lazy" class="h-full w-full object-cover" onerror="this.parentElement.remove()"></div>` : ''}
+      <div class="p-4">
+        <p class="text-[10.5px] font-medium uppercase tracking-[0.15em] text-[#70757a]">Knowledge panel</p>
+        <h2 class="mt-1.5 text-[16px] font-medium leading-snug text-[#202124]">${esc(kg.title || '')}</h2>
+        ${kg.type ? `<p class="mt-0.5 text-[12px] text-[#70757a]">${esc(kg.type)}</p>` : ''}
+        ${kg.description ? `<p class="mt-2.5 line-clamp-6 text-[12.5px] leading-[1.6] text-[#4d5156]">${esc(kg.description)}</p>` : ''}
+        ${link ? `<a href="${esc(safeUrl(link))}" target="_blank" rel="noopener noreferrer nofollow"
+          class="mt-3 inline-flex items-center gap-1 text-[12px] text-[#1a73e8] hover:underline">${esc(byline || 'Source')} ${ICONS.arrow}</a>` : ''}
+      </div>
+    </section>`;
+}
+
+function questionsCard(questions) {
+  return `
+    <section class="panel">
+      <p class="panel-head">People also ask</p>
+      <div class="px-4 py-1">
+        ${questions.slice(0, 6).map((q) => `
+          <details class="q border-b border-[#ebedef] py-3 last:border-0">
+            <summary class="flex cursor-pointer items-start gap-2 text-[13px] leading-snug text-[#202124] transition hover:text-[#1a73e8]">
+              <span class="flex-1">${esc(q.question || q.title || '')}</span>
+              <svg viewBox="0 0 24 24" class="chev mt-0.5 h-4 w-4 shrink-0 text-[#9aa0a6] transition-transform" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="mt-2">
+              ${q.snippet ? `<p class="text-[12.5px] leading-[1.6] text-[#4d5156]">${esc(q.snippet)}</p>` : ''}
+              ${q.link ? `<a href="${esc(safeUrl(q.link))}" target="_blank" rel="noopener noreferrer nofollow"
+                class="mt-1.5 inline-flex items-center gap-1 text-[12px] text-[#1a73e8] hover:underline">${esc(hostOf(q.link) || 'Read more')} ${ICONS.arrow}</a>` : ''}
+            </div>
+          </details>`).join('')}
+      </div>
+    </section>`;
+}
+
+function searchesCard(related) {
+  const items = related.map((r) => (typeof r === 'string' ? r : r?.query)).filter(Boolean).slice(0, 8);
+  if (!items.length) return '';
+
+  return `
+    <section class="panel">
+      <p class="panel-head">Related searches</p>
+      <div class="p-2">
+        ${items.map((q) => `
+          <button type="button" data-suggest="${esc(q)}"
+            class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-[#202124] transition hover:bg-[#f1f3f4]">
+            <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-[#9aa0a6]" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.7-3.7"/></svg>
+            <span class="truncate">${esc(q)}</span>
+          </button>`).join('')}
+      </div>
+    </section>`;
+}
+
+/* ------------------------------ skeletons ------------------------------ */
+function showSkeleton(tab) {
+  sidebarEl.innerHTML = '';
+  sidebarEl.style.display = 'none';
+
+  if (tab === 'images') {
+    resultsEl.innerHTML = `
+      <div class="mb-4 flex items-center gap-2 border-b border-[#ebedef] pb-3">
+        <span class="skeleton h-3 w-32"></span>
+        <span class="h-3 w-3 animate-spin rounded-full border-2 border-[#e8eaed] border-t-[#1a73e8]"></span>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+        ${Array.from({ length: 12 }).map(() => `<div class="skeleton aspect-[4/3] w-full !rounded-lg"></div>`).join('')}
+      </div>`;
+    return;
+  }
+
+  if (tab === 'videos') {
+    resultsEl.innerHTML = `
+      <div class="mb-4 border-b border-[#ebedef] pb-3"><span class="skeleton block h-3 w-32"></span></div>
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        ${Array.from({ length: 4 }).map(() => `
+          <div>
+            <div class="skeleton aspect-video w-full !rounded-lg"></div>
+            <div class="mt-2.5 space-y-2"><div class="skeleton h-3 w-11/12"></div><div class="skeleton h-3 w-1/2"></div></div>
+          </div>`).join('')}
+      </div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = `
+    <div class="mb-3 flex items-center gap-2.5 border-b border-[#ebedef] pb-3">
+      <span class="skeleton h-3 w-28"></span>
+      <span class="h-3 w-3 animate-spin rounded-full border-2 border-[#e8eaed] border-t-[#1a73e8]"></span>
+      <span class="text-[12px] text-[#9aa0a6]">Searching “${esc(state.query)}”…</span>
+    </div>
+    <div class="space-y-7 pt-1">
+      ${Array.from({ length: 5 }).map(() => `
+        <div class="flex gap-3.5">
+          <div class="skeleton h-7 w-7 !rounded-full"></div>
+          <div class="flex-1 space-y-2.5">
+            <div class="skeleton h-2.5 w-28"></div>
+            <div class="skeleton h-4 w-[68%]"></div>
+            <div class="skeleton h-2.5 w-full"></div>
+            <div class="skeleton h-2.5 w-[88%]"></div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+/* -------------------------------- errors ------------------------------- */
+function showError(err, query) {
+  const status = err?.status || 0;
+  let title = 'Search could not be completed';
+  let hint = 'Something went wrong while fetching results. Please try again.';
+  let showSettings = false;
+
+  if (status === 401 || status === 403) {
+    title = 'API key was rejected';
+    hint = 'SearchApi.io did not accept this key. Open settings and paste a valid key from your dashboard.';
+    showSettings = true;
+  } else if (status === 429) {
+    title = 'Request limit reached';
+    hint = 'Your SearchApi.io plan is out of credits for now. Wait a moment or check your plan.';
+  } else if (status === 402) {
+    title = 'Plan limit reached';
+    hint = 'This SearchApi.io account has no remaining searches. Review your subscription to continue.';
+  } else if (status >= 500) {
+    title = 'SearchApi.io is having trouble';
+    hint = 'The upstream search service returned an error. Retrying usually helps.';
+  } else if (err?.kind === 'network') {
+    title = 'Could not reach SearchApi.io';
+    hint = 'Check your connection, or a browser extension may be blocking the request. For production, route calls through a small server-side proxy.';
+    showSettings = true;
+  } else if (status === 400) {
+    title = 'That query was rejected';
+    hint = 'SearchApi.io could not process this request. Try a simpler query.';
+  }
+
+  const google = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+
+  resultsEl.innerHTML = `
+    <div class="rounded-xl border border-[#f6aea9] bg-[#fce8e6] p-5">
+      <div class="flex items-start gap-3">
+        <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/70 text-[#d93025]">
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        </span>
+        <div class="min-w-0">
+          <h2 class="text-[14.5px] font-medium text-[#202124]">${esc(title)}</h2>
+          <p class="mt-1 text-[13px] leading-relaxed text-[#5f6368]">${esc(hint)}</p>
+          <p class="mt-2 break-words font-mono text-[10.5px] leading-relaxed text-[#a50e0e]/70">${esc(err?.message || 'Unknown error')}</p>
+        </div>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <button type="button" data-retry
+          class="inline-flex items-center gap-1.5 rounded-lg bg-[#1a73e8] px-3.5 py-2 text-[12.5px] font-medium text-white transition hover:bg-[#1765cc]">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11a8 8 0 1 1 2.3 5.6"/><path d="M3 5v6h6"/></svg>
+          Try again
+        </button>
+        ${showSettings ? `<button type="button" data-open-settings class="rounded-lg border border-[#dadce0] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#1a73e8] transition hover:bg-[#f8f9fa]">Open settings</button>` : ''}
+        <a href="${esc(google)}" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-[12.5px] text-[#1a73e8] hover:underline">Search on Google ${ICONS.arrow}</a>
+      </div>
+    </div>`;
+}
+
+/* -------------------------------- modal -------------------------------- */
+function openModal() {
+  keyInput.value = getKey();
+  langSelect.value = settings.hl;
+  regionSel.value = settings.gl;
+  modal.classList.remove('hidden');
+  setTimeout(() => keyInput.focus(), 40);
+}
+
+function closeModal() {
+  modal.classList.add('hidden');
+  keyInput.type = 'password';
+  $('#toggle-key').textContent = 'show';
+}
+
+function saveSettings(e) {
+  e.preventDefault();
+  const key = keyInput.value.trim();
+
+  if (key && key !== CONFIG.API_KEY) {
+    settings.apiKey = key;
+    try { localStorage.setItem(LS.key, key); } catch { /* ignore */ }
+  } else {
+    settings.apiKey = '';
+    try { localStorage.removeItem(LS.key); } catch { /* ignore */ }
+  }
+
+  settings.hl = langSelect.value;
+  settings.gl = regionSel.value;
+  writeJSON(LS.prefs, { hl: settings.hl, gl: settings.gl });
+
+  state.cache.clear();
+  closeModal();
+  toast('Settings saved');
+
+  if (state.query) runSearch({ query: state.query, tab: state.tab, push: false, force: true });
+}
+
+/* -------------------------------- toast -------------------------------- */
+function toast(message) {
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
+}
+
+/* ------------------------------- input ux ------------------------------ */
+function toggleClear() {
+  clearBtn.hidden = input.value.length === 0;
+}
+
+/* -------------------------------- events ------------------------------- */
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = input.value.trim();
+  if (q) runSearch({ query: q, tab: state.tab, push: true });
+});
+
+input.addEventListener('input', toggleClear);
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { input.blur(); return; }
+  if (e.key === 'ArrowDown') {
+    const first = resultsEl.querySelector('.result-title a');
+    if (first) { e.preventDefault(); first.focus(); }
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  toggleClear();
+  input.focus();
+});
+
+tabsEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-tab]');
+  if (!btn || !state.query) return;
+  const tab = btn.dataset.tab;
+  if (tab === state.tab) return;
+  runSearch({ query: state.query, tab, push: false });
+});
+
+$('#curious-btn').addEventListener('click', () => {
+  const q = CURIOUS[Math.floor(Math.random() * CURIOUS.length)];
+  input.value = q;
+  toggleClear();
+  runSearch({ query: q, tab: 'all', push: true });
+});
+
+document.addEventListener('click', (e) => {
+  const suggest = e.target.closest('[data-suggest]');
+  if (suggest) {
+    const q = suggest.dataset.suggest;
+    input.value = q;
+    toggleClear();
+    runSearch({ query: q, tab: state.tab, push: true });
+    return;
+  }
+
+  if (e.target.closest('[data-retry]')) {
+    runSearch({ query: state.query, tab: state.tab, push: false, force: true });
+    return;
+  }
+
+  if (e.target.closest('[data-open-settings]')) {
+    openModal();
+    return;
+  }
+
+  if (e.target.closest('#modal-close') || e.target.closest('#modal-cancel') || e.target.closest('#modal-backdrop')) {
+    closeModal();
+    return;
+  }
+
+  if (e.target.closest('#clear-recent')) {
+    writeJSON(LS.recent, []);
+    renderRecent();
+    toast('Recent searches cleared');
+    return;
+  }
+
+  if (e.target.closest('#toggle-key')) {
+    const btn = $('#toggle-key');
+    const show = keyInput.type === 'password';
+    keyInput.type = show ? 'text' : 'password';
+    btn.textContent = show ? 'hide' : 'show';
+    return;
+  }
+
+  if (e.target.closest('#reset-key')) {
+    keyInput.value = CONFIG.API_KEY;
+    toast('Default key loaded');
+  }
+});
+
+$('#settings-form').addEventListener('submit', saveSettings);
+
+document.addEventListener('keydown', (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+  const metaK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+
+  if (metaK) { e.preventDefault(); input.focus(); input.select(); return; }
+  if (e.key === '/' && !typing) { e.preventDefault(); input.focus(); return; }
+  if (e.key === 'Escape' && !modal.classList.contains('hidden')) { closeModal(); return; }
+  if (typing) return;
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const links = [...resultsEl.querySelectorAll('.result-title a')];
+    if (!links.length) return;
+    const idx = links.indexOf(document.activeElement);
+    e.preventDefault();
+    if (e.key === 'ArrowDown') links[idx < 0 ? 0 : Math.min(idx + 1, links.length - 1)]?.focus();
+    else links[idx <= 0 ? 0 : idx - 1]?.focus();
+  }
+});
+
+window.addEventListener('popstate', () => {
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('q') || '').trim();
+  const tab = TABS[params.get('tab')] ? params.get('tab') : 'all';
+
+  if (q) {
+    input.value = q;
+    toggleClear();
+    runSearch({ query: q, tab, push: false });
+  } else {
+    document.body.classList.remove('is-results');
+    state.query = '';
+    state.tab = 'all';
+    input.value = '';
+    toggleClear();
+    resultsEl.innerHTML = '';
+    sidebarEl.innerHTML = '';
+    tabsWrap.classList.add('hidden');
+    document.title = 'Lumen — Search the web';
+  }
+});
+
+/* --------------------------------- init -------------------------------- */
+function init() {
+  renderTabs();
+  syncTabs();
+  renderRecent();
+  toggleClear();
+  langSelect.value = settings.hl;
+  regionSel.value = settings.gl;
+
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('q') || '').trim();
+  const tabParam = params.get('tab');
+  const tab = TABS[tabParam] ? tabParam : 'all';
+
+  if (q) {
+    input.value = q;
+    toggleClear();
+    runSearch({ query: q, tab, push: false });
+  }
+}
+
+init();
+</script>
+</body>
+</html>
